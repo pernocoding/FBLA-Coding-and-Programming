@@ -40,7 +40,7 @@ public class Login {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 370, 600);
+		frame.setBounds(100, 100, 370, 450);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		frame.setResizable(false);
@@ -66,24 +66,16 @@ public class Login {
 		numberField.setBounds(150, 220, 150, 30);
 		frame.getContentPane().add(numberField);
 		
-		JCheckBox showPassword = new JCheckBox("Show Number");
-		showPassword.setFont(new Font("Calibri", Font.PLAIN, 15));
-		showPassword.setBounds(150, 250, 128, 23);
-		frame.getContentPane().add(showPassword);
-		showPassword.addActionListener(new ActionListener() {
-			public void actionPerformed (ActionEvent e) {
-				if(showPassword.isSelected()) {
-					numberField.setEchoChar((char)0);
-				} else {
-					numberField.setEchoChar('\u25CF');
-				}
-			}
-		});
-		
 		JButton loginButton = new JButton("Log-In");
 		loginButton.setFont(new Font("Calibri", Font.PLAIN, 15));
-		loginButton.setBounds(125, 300, 117, 29);
+		loginButton.setBounds(12, 300, 345, 50);
 		frame.getContentPane().add(loginButton);
+		
+		JButton registerButton = new JButton("Register");
+		registerButton.setFont(new Font("Calibri", Font.PLAIN, 15));
+		registerButton.setBounds(12, 362, 345, 50);
+		frame.getContentPane().add(registerButton);
+		
 		loginButton.addActionListener(new ActionListener() {
 			public void actionPerformed (ActionEvent e) {
 				String userText = userTextField.getText();
@@ -98,5 +90,33 @@ public class Login {
 				}
 			}
 		});
+		
+		JCheckBox showPassword = new JCheckBox("Show Number");
+		showPassword.setFont(new Font("Calibri", Font.PLAIN, 15));
+		showPassword.setBounds(150, 250, 128, 23);
+		frame.getContentPane().add(showPassword);
+		showPassword.addActionListener(new ActionListener() {
+			public void actionPerformed (ActionEvent e) {
+				if(showPassword.isSelected()) {
+					numberField.setEchoChar((char)0);
+				} else {
+					numberField.setEchoChar('\u25CF');
+				}
+			}
+		});
+		
+		registerButton.addActionListener(new ActionListener() {
+			public void actionPerformed (ActionEvent e) {
+				frame.dispose();
+				
+				Register r = new Register();
+				r.setVisible(true);
+			}
+		});
+	}
+
+	public void setVisible(boolean b) {
+		// TODO Auto-generated method stub
+		this.frame.setVisible(b);
 	}
 }
