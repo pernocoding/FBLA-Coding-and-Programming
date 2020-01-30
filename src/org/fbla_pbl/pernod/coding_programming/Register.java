@@ -4,11 +4,15 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.JComboBox;
@@ -18,6 +22,8 @@ public class Register extends JFrame {
 
 	private JTextField userTextField;
 	private JPasswordField numberField;
+	private JTextField emailTextField;
+	private JPasswordField confirmNumberField;
 	/**
 	 * Launch the application.
 	 */
@@ -45,23 +51,23 @@ public class Register extends JFrame {
 		
 		JLabel userLabel = new JLabel("Full Name");
 		userLabel.setFont(new Font("Calibri", Font.PLAIN, 15));
-		userLabel.setBounds(50, 100, 100, 30);
+		userLabel.setBounds(51, 59, 100, 30);
 		getContentPane().add(userLabel);
 		
 		JLabel numberLabel = new JLabel("Student No.");
 		numberLabel.setFont(new Font("Calibri", Font.PLAIN, 15));
-		numberLabel.setBounds(50, 220, 100, 30);
+		numberLabel.setBounds(51, 179, 100, 30);
 		getContentPane().add(numberLabel);
 		
 		userTextField = new JTextField();
 		userTextField.setFont(new Font("Calibri", Font.PLAIN, 15));
-		userTextField.setBounds(150, 100, 150, 30);
+		userTextField.setBounds(151, 59, 150, 30);
 		getContentPane().add(userTextField);
 		userTextField.setColumns(10);
 		
 		numberField = new JPasswordField();
 		numberField.setFont(new Font("Calibri", Font.PLAIN, 15));
-		numberField.setBounds(150, 220, 150, 30);
+		numberField.setBounds(151, 179, 150, 30);
 		getContentPane().add(numberField);
 		
 		JButton loginButton = new JButton("Log-In");
@@ -75,6 +81,43 @@ public class Register extends JFrame {
 		getContentPane().add(registerButton);
 		
 		JFrame frame = this;
+		
+		
+		JComboBox gradeDropdown = new JComboBox();
+		gradeDropdown.setFont(new Font("Calibri", Font.PLAIN, 15));
+		gradeDropdown.setModel(new DefaultComboBoxModel(new String[] {"Choose Grade", "Freshman", "Sophomore", "Junior", "Senior"}));
+		gradeDropdown.setBounds(151, 98, 150, 30);
+		getContentPane().add(gradeDropdown);
+		
+		registerButton.addActionListener(new ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+				String userText = userTextField.getText();
+				String gradeText = (String) gradeDropdown.getSelectedItem();
+				String emailText = emailTextField.getText();
+				String numberText = String.copyValueOf(numberField.getPassword());
+				String confirmNumberText = String.copyValueOf(confirmNumberField.getPassword());
+				
+				if (gradeText.equals("Choose Grade")) {
+					JOptionPane.showMessageDialog(frame, "Select which grade you are in.");
+				} else if (!numberText.contentEquals(confirmNumberText)) {
+					JOptionPane.showMessageDialog(frame, "Make sure to check your number.");
+				} else {
+					try {
+						User user = UserManager.createUser(userText, gradeText, emailText, numberText);
+						UserManager.registerUser(user);
+						
+						dispose();
+						Home h = new Home(user);
+						h.setVisible(true);
+					} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
+			
+		});
 		
 		loginButton.addActionListener(new ActionListener() {
 			public void actionPerformed (ActionEvent e) {
@@ -90,22 +133,39 @@ public class Register extends JFrame {
 		showPassword.setBounds(150, 250, 128, 23);
 		getContentPane().add(showPassword);
 		
-		JLabel gradeDropdown = new JLabel("Grade");
-		gradeDropdown.setFont(new Font("Calibri", Font.PLAIN, 15));
-		gradeDropdown.setBounds(50, 160, 100, 30);
-		getContentPane().add(gradeDropdown);
+		JLabel gradeLabel = new JLabel("Grade");
+		gradeLabel.setFont(new Font("Calibri", Font.PLAIN, 15));
+		gradeLabel.setBounds(51, 98, 100, 30);
+		getContentPane().add(gradeLabel);
 		
-		JComboBox comboBox = new JComboBox();
-		comboBox.setFont(new Font("Calibri", Font.PLAIN, 15));
-		comboBox.setModel(new DefaultComboBoxModel(new String[] {"Choose Grade", "Freshman", "Sophomore", "Junior", "Senior"}));
-		comboBox.setBounds(150, 160, 150, 30);
-		getContentPane().add(comboBox);
+		JLabel emailLabel = new JLabel("Email");
+		emailLabel.setFont(new Font("Calibri", Font.PLAIN, 15));
+		emailLabel.setBounds(51, 137, 100, 30);
+		getContentPane().add(emailLabel);
+		
+		emailTextField = new JTextField();
+		emailTextField.setFont(new Font("Calibri", Font.PLAIN, 15));
+		emailTextField.setColumns(10);
+		emailTextField.setBounds(151, 137, 150, 30);
+		getContentPane().add(emailTextField);
+		
+		confirmNumberField = new JPasswordField();
+		confirmNumberField.setFont(new Font("Calibri", Font.PLAIN, 15));
+		confirmNumberField.setBounds(151, 219, 150, 30);
+		getContentPane().add(confirmNumberField);
+		
+		JLabel confirmNumberLabel = new JLabel("Confirm No.");
+		confirmNumberLabel.setFont(new Font("Calibri", Font.PLAIN, 15));
+		confirmNumberLabel.setBounds(51, 219, 100, 30);
+		getContentPane().add(confirmNumberLabel);
 		showPassword.addActionListener(new ActionListener() {
 			public void actionPerformed (ActionEvent e) {
 				if(showPassword.isSelected()) {
 					numberField.setEchoChar((char)0);
+					confirmNumberField.setEchoChar((char)0);
 				} else {
 					numberField.setEchoChar('\u25CF');
+					confirmNumberField.setEchoChar('\u25CF');
 				}
 			}
 		});

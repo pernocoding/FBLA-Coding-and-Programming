@@ -2,14 +2,14 @@ package org.fbla_pbl.pernod.coding_programming;
 
 import java.awt.EventQueue;
 import java.awt.event.*;
-
+import java.io.IOException;
 import javax.swing.*;
 import java.awt.Font;
 
 public class Login {
 
 	private JFrame frame;
-	private JTextField userTextField;
+	private JTextField emailTextField;
 	private JPasswordField numberField;
 
 	/**
@@ -45,21 +45,21 @@ public class Login {
 		frame.getContentPane().setLayout(null);
 		frame.setResizable(false);
 		
-		JLabel userLabel = new JLabel("Student Name");
-		userLabel.setFont(new Font("Calibri", Font.PLAIN, 15));
-		userLabel.setBounds(50, 150, 100, 30);
-		frame.getContentPane().add(userLabel);
+		JLabel emailLabel = new JLabel("Student Email");
+		emailLabel.setFont(new Font("Calibri", Font.PLAIN, 15));
+		emailLabel.setBounds(50, 150, 100, 30);
+		frame.getContentPane().add(emailLabel);
 		
 		JLabel numberLabel = new JLabel("Student No.");
 		numberLabel.setFont(new Font("Calibri", Font.PLAIN, 15));
 		numberLabel.setBounds(50, 220, 100, 30);
 		frame.getContentPane().add(numberLabel);
 		
-		userTextField = new JTextField();
-		userTextField.setFont(new Font("Calibri", Font.PLAIN, 15));
-		userTextField.setBounds(150, 150, 150, 30);
-		frame.getContentPane().add(userTextField);
-		userTextField.setColumns(10);
+		emailTextField = new JTextField();
+		emailTextField.setFont(new Font("Calibri", Font.PLAIN, 15));
+		emailTextField.setBounds(150, 150, 150, 30);
+		frame.getContentPane().add(emailTextField);
+		emailTextField.setColumns(10);
 		
 		numberField = new JPasswordField();
 		numberField.setFont(new Font("Calibri", Font.PLAIN, 15));
@@ -78,12 +78,20 @@ public class Login {
 		
 		loginButton.addActionListener(new ActionListener() {
 			public void actionPerformed (ActionEvent e) {
-				String userText = userTextField.getText();
+				String emailText = emailTextField.getText();
 				String numberText = String.copyValueOf(numberField.getPassword());
-				if (userText.equals("admin") && numberText.equals("admin")) {
+				User user = null;
+				try {
+					user = UserManager.findUser(emailText);
+				} catch (IOException e2) {
+					// TODO Auto-generated catch block
+					e2.printStackTrace();
+				}
+				
+				if (numberText.equals(user.getNumber())) {
 					frame.dispose();
 					
-					Home home = new Home();
+					Home home = new Home(user);
 					home.setVisible(true);
 				} else {
 					JOptionPane.showMessageDialog(frame, "Invalid Student Name or Number");

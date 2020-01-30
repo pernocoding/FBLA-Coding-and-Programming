@@ -7,6 +7,8 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JTabbedPane;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.Color;
 import javax.swing.SwingConstants;
 import java.awt.Font;
@@ -14,6 +16,10 @@ import javax.swing.JSeparator;
 import javax.swing.JTextPane;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.awt.event.ActionEvent;
 import javax.swing.JTextField;
 import javax.swing.JComboBox;
@@ -33,6 +39,7 @@ public class Home extends JFrame {
 	private JPasswordField profile_newNumberField;
 	private JTextField serviceHours_totalTextField;
 	private JTable rankings_table;
+	private JTextField profile_emailTextField;
 
 	/**
 	 * Launch the application.
@@ -41,8 +48,9 @@ public class Home extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Home frame = new Home();
+					Home frame = new Home(null);
 					frame.setVisible(true);
+					frame.setResizable(false);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -53,7 +61,7 @@ public class Home extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public Home() {
+	public Home(User loggedIn) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 780, 625);
 		contentPane = new JPanel();
@@ -103,15 +111,21 @@ public class Home extends JFrame {
 		
 		JLabel profile_nameLabel = new JLabel("Student Name");
 		profile_nameLabel.setToolTipText("The legal name of the chapter member. If it is ever changed, change it with the text field to the right.");
-		profile_nameLabel.setBounds(400, 40, 150, 30);
+		profile_nameLabel.setBounds(400, 19, 150, 30);
 		profile_panel.add(profile_nameLabel);
 		profile_nameLabel.setFont(new Font("Calibri", Font.PLAIN, 16));
 		
 		JLabel profile_gradeLabel = new JLabel("Student Grade");
 		profile_gradeLabel.setToolTipText("The grade of the chapter member. It does not update every year, so make sure you change it every year by changing it with the dropdown on the right.");
 		profile_gradeLabel.setFont(new Font("Calibri", Font.PLAIN, 16));
-		profile_gradeLabel.setBounds(400, 90, 150, 30);
+		profile_gradeLabel.setBounds(400, 65, 150, 30);
 		profile_panel.add(profile_gradeLabel);
+		
+		JLabel profile_emailLabel = new JLabel("Student Email");
+		profile_emailLabel.setToolTipText("Fill in your email ehre. Preferably make it your school email, but it doesn't matter too much.");
+		profile_emailLabel.setFont(new Font("Calibri", Font.PLAIN, 16));
+		profile_emailLabel.setBounds(400, 111, 150, 30);
+		profile_panel.add(profile_emailLabel);
 		
 		JLabel profile_currentNumberLabel = new JLabel("Current Student No.");
 		profile_currentNumberLabel.setToolTipText("Enter current student number if you wish to change it.");
@@ -144,16 +158,26 @@ public class Home extends JFrame {
 		profile_nameTextField = new JTextField();
 		profile_nameLabel.setLabelFor(profile_nameTextField);
 		profile_nameTextField.setFont(new Font("Calibri", Font.PLAIN, 16));
-		profile_nameTextField.setBounds(551, 40, 150, 30);
+		profile_nameTextField.setBounds(551, 19, 150, 30);
 		profile_panel.add(profile_nameTextField);
 		profile_nameTextField.setColumns(10);
+		profile_nameTextField.setText(loggedIn.getName());
 		
 		JComboBox<?> profile_gradeDropdown = new JComboBox<Object>();
 		profile_gradeLabel.setLabelFor(profile_gradeDropdown);
 		profile_gradeDropdown.setFont(new Font("Calibri", Font.PLAIN, 16));
 		profile_gradeDropdown.setModel(new DefaultComboBoxModel(new String[] {"Choose Grade", "Freshman", "Sophomore", "Junior", "Senior"}));
-		profile_gradeDropdown.setBounds(551, 90, 150, 30);
+		profile_gradeDropdown.setBounds(551, 65, 150, 30);
+		
 		profile_panel.add(profile_gradeDropdown);
+		profile_gradeDropdown.setSelectedItem(loggedIn.getGrade());
+		
+		profile_emailTextField = new JTextField();
+		profile_emailTextField.setFont(new Font("Calibri", Font.PLAIN, 16));
+		profile_emailTextField.setColumns(10);
+		profile_emailTextField.setBounds(551, 111, 150, 30);
+		profile_panel.add(profile_emailTextField);
+		profile_emailTextField.setText(loggedIn.getEmail());
 		
 		profile_currentNumberField = new JPasswordField();
 		profile_currentNumberLabel.setLabelFor(profile_currentNumberField);
@@ -176,8 +200,16 @@ public class Home extends JFrame {
 		JButton profile_resetButton = new JButton("Reset Changes");
 		profile_resetButton.setToolTipText("Use this if you change your mind to change the input to the defaults.");
 		profile_resetButton.setFont(new Font("Calibri", Font.PLAIN, 16));
+		profile_resetButton.setBounds(377, 415, 325, 57);
+		profile_panel.add(profile_resetButton);
 		profile_resetButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				profile_nameTextField.setText(loggedIn.getName());
+				profile_gradeDropdown.setSelectedItem(loggedIn.getGrade());
+				profile_emailTextField.setText(loggedIn.getEmail());
+				profile_currentNumberField.setText("");
+				profile_newNumberField.setText("");
+				profile_confirmNumberField.setText("");
 			}
 		});
 		
@@ -186,8 +218,38 @@ public class Home extends JFrame {
 		profile_confirmButton.setFont(new Font("Calibri", Font.PLAIN, 16));
 		profile_confirmButton.setBounds(377, 343, 325, 57);
 		profile_panel.add(profile_confirmButton);
-		profile_resetButton.setBounds(377, 415, 325, 57);
-		profile_panel.add(profile_resetButton);
+		profile_confirmButton.addActionListener(new ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				String nameText = profile_nameTextField.getText();
+				String gradeText = (String) profile_gradeDropdown.getSelectedItem();
+				String emailText = profile_emailTextField.getText();
+				String currentNumberText = String.copyValueOf(profile_currentNumberField.getPassword());
+				String newNumberText = String.copyValueOf(profile_newNumberField.getPassword());
+				String confirmNumberText = String.copyValueOf(profile_confirmNumberField.getPassword());
+				
+				if (currentNumberText.equals(loggedIn.getNumber())) {
+					if (newNumberText.equals(confirmNumberText)) {
+						User newUser = loggedIn;
+						newUser.setName(nameText);
+						newUser.setGrade(gradeText);
+						newUser.setEmail(emailText);
+						newUser.setNumber(newNumberText);
+						
+						try {
+							UserManager.updateUserData(loggedIn, newUser);
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					}
+				}
+			}
+			
+		});
+		
+		JFrame frame = this;
 		
 		JButton profile_deleteAccountButton = new JButton("Delete Account");
 		profile_deleteAccountButton.setToolTipText("If you wish to delete your account, press this to do so.");
@@ -196,6 +258,25 @@ public class Home extends JFrame {
 		profile_deleteAccountButton.setFont(new Font("Calibri", Font.PLAIN, 16));
 		profile_deleteAccountButton.setBounds(377, 483, 325, 57);
 		profile_panel.add(profile_deleteAccountButton);
+		profile_deleteAccountButton.addActionListener(new ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				int delete = JOptionPane.showConfirmDialog(frame, "Are you sure you want to do this? This is unreversible.");
+				
+				if (delete == JOptionPane.YES_OPTION) {
+					try {
+						UserManager.deleteUser(loggedIn);
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					
+					System.exit(0);
+				}
+			}
+			
+		});
 		
 		/*----------------------------------------------------------------------------------------Service Hours Tab----------------------------------------------------------------------------------------------------*/
 
@@ -248,6 +329,7 @@ public class Home extends JFrame {
 		serviceHours_totalTextField.setBounds(562, 43, 150, 26);
 		serviceHours_panels.add(serviceHours_totalTextField);
 		serviceHours_totalTextField.setColumns(10);
+		serviceHours_totalTextField.setText(Integer.toString(loggedIn.getServiceHours()));
 		
 		JLabel serviceHours_newHoursLabel = new JLabel("New Service Hours");
 		serviceHours_newHoursLabel.setToolTipText("Change this number to add these hours to your total, to keep track of the hours you've worked.");
@@ -272,16 +354,19 @@ public class Home extends JFrame {
 		serviceHours_csaCommunity.setFont(new Font("Calibri", Font.PLAIN, 16));
 		serviceHours_csaCommunity.setBounds(562, 193, 150, 23);
 		serviceHours_panels.add(serviceHours_csaCommunity);
+		serviceHours_csaCommunity.setSelected(loggedIn.getAwards().size() >= 1);
 		
 		JCheckBox serviceHours_csaService = new JCheckBox("CSA Service");
 		serviceHours_csaService.setFont(new Font("Calibri", Font.PLAIN, 16));
 		serviceHours_csaService.setBounds(562, 238, 150, 23);
 		serviceHours_panels.add(serviceHours_csaService);
+		serviceHours_csaService.setSelected(loggedIn.getAwards().size() >= 2);
 		
 		JCheckBox serviceHours_csaAchievement = new JCheckBox("CSA Achievement");
 		serviceHours_csaAchievement.setFont(new Font("Calibri", Font.PLAIN, 16));
 		serviceHours_csaAchievement.setBounds(562, 283, 150, 23);
 		serviceHours_panels.add(serviceHours_csaAchievement);
+		serviceHours_csaAchievement.setSelected(loggedIn.getAwards().size() >= 3);
 		
 		JSeparator serviceHours_numberSeparator = new JSeparator();
 		serviceHours_numberSeparator.setForeground(Color.BLACK);
@@ -293,13 +378,55 @@ public class Home extends JFrame {
 		serviceHours_confirmButton.setFont(new Font("Calibri", Font.PLAIN, 16));
 		serviceHours_confirmButton.setBounds(375, 380, 325, 57);
 		serviceHours_panels.add(serviceHours_confirmButton);
+		serviceHours_confirmButton.addActionListener(new ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				int newHours = (int) serviceHours_newHoursSpinner.getValue();
+				boolean csaCommunity = serviceHours_csaCommunity.isSelected();
+				boolean csaService = serviceHours_csaService.isSelected();
+				boolean csaAchievement = serviceHours_csaAchievement.isSelected();
+
+				User newUser = loggedIn;
+				newUser.setServiceHours(newUser.getServiceHours() + newHours);
+				
+				List<String> awards = new ArrayList<>();
+				
+				if (csaCommunity) {
+					awards.add("CSA Community");
+				}
+				if (csaService) {
+					awards.add("CSA Service");
+				}
+				if (csaAchievement) {
+					awards.add("CSA Achievement");
+				}
+				newUser.setAwards(awards);
+				
+				try {
+					UserManager.updateUserData(loggedIn, newUser);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			
+		});
 		
 		JButton serviceHours_resetButton = new JButton("Reset Changes");
 		serviceHours_resetButton.setToolTipText("If you make a mistake, and you didn't mean to edit, press this to set it back to default.");
 		serviceHours_resetButton.setFont(new Font("Calibri", Font.PLAIN, 16));
 		serviceHours_resetButton.setBounds(375, 450, 325, 57);
 		serviceHours_panels.add(serviceHours_resetButton);
-		
+		serviceHours_resetButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				serviceHours_newHoursSpinner.setValue(0);
+
+				serviceHours_csaCommunity.setSelected(loggedIn.getAwards().size() >= 1);
+				serviceHours_csaService.setSelected(loggedIn.getAwards().size() >= 2);
+				serviceHours_csaAchievement.setSelected(loggedIn.getAwards().size() >= 3);
+			}
+		});
 		/*----------------------------------------------------------------------------------------Rankings Tab----------------------------------------------------------------------------------------------------*/
 
 		
@@ -343,53 +470,33 @@ public class Home extends JFrame {
 			"# of Service Hours"
 		};
 		
-		Object[][] rankings_tableData = {
-				{0, "admin", "N/A", 0}	
-		};
+		List<User> rankings_users = UserManager.getUserData();
+		
+		rankings_users.sort(new Comparator<User>() {
+
+			@Override
+			public int compare(User o1, User o2) {
+				if (o1 == o2) {
+					return 0;
+				}
+				if (o1 != null) {
+					return (o2 != null) ? Integer.compare(o1.getServiceHours(), o2.getServiceHours()) : 1;
+				}
+				return -1;
+			}
+			
+		});
+		
+		Object[][] rankings_tableData = new Object[rankings_users.size()][4];
+		
+		for (int i = 0; i < rankings_users.size(); i++) {
+			rankings_tableData[i][0] = i + 1;
+			rankings_tableData[i][1] = rankings_users.get(i).getName();
+			rankings_tableData[i][2] = rankings_users.get(i).getGrade();
+			rankings_tableData[i][3] = rankings_users.get(i).getServiceHours();
+		}
 		
 		rankings_table = new JTable(rankings_tableData, rankings_columnTitles);
 		rankings_scrollPane.setViewportView(rankings_table);
-		
-		/*----------------------------------------------------------------------------------------Reports Tab----------------------------------------------------------------------------------------------------*/
-
-		
-		JPanel reports_panel = new JPanel();
-		tabbedPane.addTab("Reports", null, reports_panel, null);
-		reports_panel.setLayout(null);
-		
-		JPanel reports_HelpPanel = new JPanel();
-		reports_HelpPanel.setLayout(null);
-		reports_HelpPanel.setBackground(Color.LIGHT_GRAY);
-		reports_HelpPanel.setBounds(0, 0, 325, 552);
-		reports_panel.add(reports_HelpPanel);
-		
-		JSeparator reports_HelpSeparator = new JSeparator();
-		reports_HelpSeparator.setForeground(Color.BLACK);
-		reports_HelpSeparator.setBounds(16, 77, 291, 17);
-		reports_HelpPanel.add(reports_HelpSeparator);
-		
-		JLabel reports_HelpLabel = new JLabel("Generate Reports");
-		reports_HelpLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		reports_HelpLabel.setFont(new Font("Calibri", Font.PLAIN, 36));
-		reports_HelpLabel.setBounds(6, -10, 313, 135);
-		reports_HelpPanel.add(reports_HelpLabel);
-		
-		JTextPane reports_HelpText = new JTextPane();
-		reports_HelpText.setText("Use this tab to generate reports based on the hours or awards done by students. You can generate each of them monthly, or weekly. For more information, hover over the part you wish to know more about.");
-		reports_HelpText.setFont(new Font("Calibri", Font.PLAIN, 24));
-		reports_HelpText.setEditable(false);
-		reports_HelpText.setBackground(Color.LIGHT_GRAY);
-		reports_HelpText.setBounds(16, 101, 291, 345);
-		reports_HelpPanel.add(reports_HelpText);
-		
-		JButton reports_serviceReportButton = new JButton("Generate Community Service Report");
-		reports_serviceReportButton.setToolTipText("Generates a communit service report per student. Either weekly or monthly reports can be generated.");
-		reports_serviceReportButton.setBounds(370, 91, 325, 162);
-		reports_panel.add(reports_serviceReportButton);
-		
-		JButton reports_csaReportButton = new JButton("Generate CSA Program Report");
-		reports_csaReportButton.setToolTipText("Generates a report based on your earned awards, total hours for the week/month, and how many more hours you need until the next reward.");
-		reports_csaReportButton.setBounds(370, 305, 325, 162);
-		reports_panel.add(reports_csaReportButton);
 	}
 }
